@@ -3,19 +3,25 @@ package pl.confitura.jelatyna.agenda;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.rest.core.config.Projection;
 import pl.confitura.jelatyna.presentation.Presentation;
-import pl.confitura.jelatyna.user.User;
+import pl.confitura.jelatyna.user.PublicUser;
 
 import java.util.Set;
 
 @Projection(name = "inlineAgenda", types = {AgendaEntry.class})
-interface InlineAgenda {
+public interface InlineAgenda {
     String getId();
 
     @Value("#{target.timeSlot.id}")
     String getTimeSlotId();
 
+    @Value("#{target.timeSlot.label}")
+    String getTimeSlotLabel();
+
     @Value("#{target.room == null ? null : target.room.id}")
     String getRoomId();
+
+    @Value("#{target.room == null ? null : target.room.label}")
+    String getRoomLabel();
 
     @Value("#{target.label == null ? null : target.label}")
     String getLabel();
@@ -25,10 +31,7 @@ interface InlineAgenda {
 
     Presentation getPresentation();
 
-    @Value("#{target.presentation == null ? null : target.presentation.speaker}")
-    User getSpeaker();
-
-    @Value("#{target.presentation == null ? null : target.presentation.cospeakers}")
-    Set<User> getCospeakers();
+    @Value("#{target.getSpeakers()}")
+    Set<PublicUser> getSpeaker();
 
 }

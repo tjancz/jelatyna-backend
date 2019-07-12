@@ -1,35 +1,36 @@
 package pl.confitura.jelatyna.infrastructure.security;
 
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
+import static pl.confitura.jelatyna.infrastructure.security.SecurityContextUtil.getPrincipal;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.confitura.jelatyna.presentation.Presentation;
 import pl.confitura.jelatyna.presentation.PresentationRepository;
+import pl.confitura.jelatyna.user.UserRepository;
 
 @Component
-@RequestScope
 @Slf4j
 public class Security {
 
-    @Autowired
-    private HttpServletRequest request;
+    private final PresentationRepository presentationRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private PresentationRepository presentationRepository;
+    public Security(PresentationRepository presentationRepository, UserRepository userRepository) {
+        this.presentationRepository = presentationRepository;
+        this.userRepository = userRepository;
+    }
 
     public boolean isOwner(String userId) {
         return isAdmin() || userId.equals(getUserId());
     }
 
     public boolean presentationOwnedByUser(String presentationId) {
-        String ownerId = presentationRepository.findById(presentationId).getSpeaker().getId();
-        return ownerId.equals(getUserId());
+        Presentation presentation = presentationRepository.findById(presentationId);
+        return presentation.getSpeakers().stream()
+                .anyMatch(owner -> owner.getId().equals(getUserId()));
     }
 
     public boolean isAdmin() {
@@ -40,13 +41,13 @@ public class Security {
         return getPrincipal().isVolunteer() || isAdmin();
     }
 
-    private JelatynaPrincipal getPrincipal() {
-        return (JelatynaPrincipal) Optional.ofNullable((Authentication) request.getUserPrincipal())
-                .map(Authentication::getPrincipal)
-                .orElse(new JelatynaPrincipal());
+    public boolean isAuthenticated() {
+        JelatynaPrincipal principal = getPrincipal();
+        log.info("Logged in user {}", principal);
+        return principal.getId() != null;
     }
 
-    private String getUserId() {
+    public String getUserId() {
         return getPrincipal().getId();
     }
 }

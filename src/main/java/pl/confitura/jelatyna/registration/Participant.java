@@ -1,53 +1,54 @@
 package pl.confitura.jelatyna.registration;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
-import org.hibernate.annotations.GenericGenerator;
-
 import lombok.Data;
-import lombok.experimental.Accessors;
+import pl.confitura.jelatyna.infrastructure.security.JelatynaPrincipal;
+import pl.confitura.jelatyna.registration.voucher.Voucher;
+import pl.confitura.jelatyna.user.User;
 
-@Entity
 @Data
-@Accessors(chain = true)
-public class Participant {
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(columnDefinition = "varchar(100)")
+class Participant implements Serializable {
+
     private String id;
     private String name;
     private String email;
-    private String city;
+
     private String gender;
-    private String experience;
-    private String role;
     private String size;
-    private String info;
-    private String createdBy;
-    private String originalBuyer;
-    private LocalDateTime creationDate;
-    private LocalDateTime registrationDate;
+
     private LocalDateTime arrivalDate;
     private String registeredBy;
     private LocalDateTime ticketSendDate;
     private LocalDateTime surveySendDate;
-    private boolean emailSent;
+    private Voucher voucher;
 
-    public boolean alreadyArrived() {
-        return this.arrivalDate != null;
-    }
+    private boolean isSpeaker;
+    private boolean isSponsor;
+    private boolean hasAcceptedPresentation;
+    private boolean isParticipant;
 
-    boolean ticketNotSentYet() {
-        return this.ticketSendDate == null;
-    }
+    public Participant(ParticipationData data, JelatynaPrincipal registerer) {
+        this.id = data.getId();
+        if (registerer.isAdmin()) {
+            this.name = data.getFullName();
+            this.email = data.getEmail();
+        }
+        this.isSpeaker = data.getVoucher().getType() == Voucher.VoucherType.SPEAKER;
+        this.isSponsor = data.getVoucher().getType() == Voucher.VoucherType.SPONSOR;
+        this.hasAcceptedPresentation = true;
+        this.isParticipant = true;
 
-    public boolean surveyNotSentYet() {
-        return surveySendDate == null;
+        this.size = data.getSize();
+        this.gender = data.getGender();
+        this.arrivalDate = data.getArrivalDate();
+        this.registeredBy = data.getRegisteredBy();
+        this.surveySendDate = data.getSurveySendDate();
+
+        if (data.getVoucher() != null) {
+            this.ticketSendDate = data.getVoucher().getTicketSendDate();
+            this.voucher = data.getVoucher();
+        }
     }
 }

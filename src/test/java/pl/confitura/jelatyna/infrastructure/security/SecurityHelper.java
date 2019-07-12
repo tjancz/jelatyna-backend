@@ -1,19 +1,21 @@
 package pl.confitura.jelatyna.infrastructure.security;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import pl.confitura.jelatyna.user.User;
 
 import static java.util.Collections.emptyList;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 public class SecurityHelper {
 
-    private static final JelatynaPrincipal ADMIN = new JelatynaPrincipal()
+    public static final JelatynaPrincipal ADMIN = new JelatynaPrincipal()
             .setId("ADMIN")
             .setName("Admin Admiński")
             .setAdmin(true);
 
-    private static final PreAuthenticatedAuthenticationToken ADMIN_TOKEN = createToken(ADMIN);
+    public static final PreAuthenticatedAuthenticationToken ADMIN_TOKEN = createToken(ADMIN);
 
     private static PreAuthenticatedAuthenticationToken createToken(JelatynaPrincipal principal) {
         return new PreAuthenticatedAuthenticationToken(principal, "", emptyList());
@@ -21,5 +23,26 @@ public class SecurityHelper {
 
     public static RequestPostProcessor admin(){
         return authentication(ADMIN_TOKEN);
+    }
+
+    public static RequestPostProcessor user(User user){
+        JelatynaPrincipal jelatynaPrincipal = new JelatynaPrincipal()
+                .setId(user.getId())
+                .setName(user.getName());
+        return authentication(createToken(jelatynaPrincipal));
+    }
+    public static RequestPostProcessor user(String user){
+        JelatynaPrincipal jelatynaPrincipal = new JelatynaPrincipal()
+                .setId(user)
+                .setName(user);
+        return authentication(createToken(jelatynaPrincipal));
+    }
+
+    public static void asAdmin() {
+        SecurityContextHolder.getContext().setAuthentication(ADMIN_TOKEN);
+    }
+
+    public static void cleanSecurity() {
+        SecurityContextHolder.clearContext();
     }
 }

@@ -2,10 +2,15 @@ server:
   port: {{port}}
   servlet:
     context-path: /api
+conference.c4p:
+  start: "2019-01-01T00:00:00.0+02:00[Europe/Warsaw]"
+  end: "2019-06-20T00:00:00.0+02:00[Europe/Warsaw]"
 twitter:
   api-key: {{twitter_key}}
   api-secret: {{twitter_secret}}
   callback: {{twitter_callback}}
+  access-token: {{twitter_access_token}}
+  access-token-secret: {{twitter_access_token_secret}}
 app.oauth.oauth2:
   facebook:
     api-key: {{facebook_key}}
@@ -40,4 +45,4 @@ spring:
     password: {{db_pass}}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update

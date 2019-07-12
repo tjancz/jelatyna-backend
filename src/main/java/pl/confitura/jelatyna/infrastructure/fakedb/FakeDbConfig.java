@@ -31,7 +31,7 @@ public class FakeDbConfig {
     private static User FAKE_VOLUNTEER = createFakeVolunteer();
     private static User FAKE_SPEAKER = createFakeSpeaker();
 
-    public static Map<String, User> bySystem = mapBySystem(FAKE_ADMIN,
+    private static Map<String, User> bySystem = mapBySystem(FAKE_ADMIN,
             FAKE_VOLUNTEER,
             FAKE_SPEAKER);
 
@@ -48,6 +48,14 @@ public class FakeDbConfig {
         return map;
     }
 
+    public User getBySystem(String provider) {
+        User user = bySystem.get(provider);
+        if(user!=null && user.getId() != null){
+            return userRepository.findById(user.getId());
+        }
+        return user;
+    }
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     public Server h2Server() throws SQLException {
         return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
@@ -57,13 +65,16 @@ public class FakeDbConfig {
 
     @PostConstruct
     public void createFakeUsers() {
-        userRepository.save(FAKE_ADMIN);
+        if (userRepository.findById(FAKE_ADMIN.getId()) == null) {
+            userRepository.save(FAKE_ADMIN);
+        }
         userRepository.save(FAKE_VOLUNTEER);
         userRepository.save(FAKE_SPEAKER);
 
     }
 
     private static User createFakeAdmin() {
+
         return new User()
                 .setId(FAKE_ADMIN_ID)
                 .setOrigin(GoogleService.SYSTEM)
